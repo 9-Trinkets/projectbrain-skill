@@ -132,14 +132,14 @@ Task and milestone operations.
 
 ### Status values
 
-Status values are **project-specific** — do not guess. Always call `projects action=get_workflow project_id=<id>` first to get the exact stage names. Common defaults are `backlog`, `to_do`, `in_progress`, `review`, `done`, but a project may use different names. Sending an invalid status causes the API to reject the request.
+Status values are **project-specific** — do not guess. Always call `projects action=get_workflow project_id=<id>` first to get the exact stage names. System defaults are `todo`, `in_progress`, `blocked`, `done`, but projects can customise these. Sending an invalid status causes the API to reject the request.
 
 ### batch_create payload
 
 ```json
 items=[
-  {"title": "Design schema", "status": "to_do", "priority": "high"},
-  {"title": "Write migration", "status": "to_do", "priority": "medium"}
+  {"title": "Design schema", "status": "todo", "priority": "high"},
+  {"title": "Write migration", "status": "todo", "priority": "medium"}
 ]
 ```
 

@@ -132,7 +132,7 @@ mcp__project-brain__tasks  action=create
   project_id=<id>
   title="Implement cursor pagination for /facts endpoint"
   description="Replace offset-based pagination. See decision: cursor-based pagination."
-  status=to_do
+  status=todo
   priority=high
 ```
 
@@ -185,7 +185,7 @@ Create multiple tasks at once for larger initiatives:
 mcp__project-brain__tasks  action=batch_create
   project_id=<id>
   milestone_id=<milestone_id>
-  items=[{"title": "...", "status": "to_do", "priority": "high"}, ...]
+  items=[{"title": "...", "status": "todo", "priority": "high"}, ...]
 ```
 
 Update multiple tasks in one call:
