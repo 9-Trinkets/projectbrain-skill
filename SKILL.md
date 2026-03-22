@@ -57,6 +57,24 @@ mcp__project-brain__knowledge  entity=fact  action=create
 
 Good facts: configuration values, confirmed constraints, third-party API behavior, team conventions, environment specifics. Keep the body actionable — explain implications, not just the fact itself.
 
+Link a fact to the task it was discovered during:
+
+```
+mcp__project-brain__knowledge  entity=fact  action=create
+  project_id=<id>
+  task_id=<task_id>
+  title="runner.py requires one process per agent"
+  body="AGENT_ID and API_TOKEN are global — no multi-agent mode exists."
+  category="architecture"
+```
+
+You can also link after the fact via update:
+
+```
+mcp__project-brain__knowledge  entity=fact  action=update
+  entity=fact  item_id=<id>  task_id=<task_id>
+```
+
 ### Decisions
 
 Log a decision whenever a non-obvious choice is made. The rationale is the most valuable part:
@@ -95,6 +113,16 @@ For deeper guidance on entry quality, see **`references/knowledge-patterns.md`**
 
 ## Task Management
 
+### Status values
+
+Status values are **project-specific** — always look them up before creating or updating tasks:
+
+```
+mcp__project-brain__projects  action=get_workflow  project_id=<id>
+```
+
+This returns the stage names to use as `status` values (e.g. `backlog`, `to_do`, `in_progress`, `review`, `done`). Using a wrong value causes the API to reject the task.
+
 ### Lifecycle
 
 Create a task before starting non-trivial work:
@@ -104,7 +132,7 @@ mcp__project-brain__tasks  action=create
   project_id=<id>
   title="Implement cursor pagination for /facts endpoint"
   description="Replace offset-based pagination. See decision: cursor-based pagination."
-  status=todo
+  status=to_do
   priority=high
 ```
 
@@ -120,6 +148,35 @@ Mark done when complete:
 mcp__project-brain__tasks  action=update  task_id=<id>  status=done
 ```
 
+### Milestones
+
+Group related tasks under a milestone for larger initiatives:
+
+```
+mcp__project-brain__tasks  action=create_milestone
+  project_id=<id>
+  title="Auth Rewrite v2"
+  description="Replace session tokens with JWTs. Required for compliance."
+```
+
+Then assign tasks to it:
+
+```
+mcp__project-brain__tasks  action=create
+  project_id=<id>
+  milestone_id=<milestone_id>
+  title="Migrate existing sessions"
+  status=to_do
+  priority=high
+```
+
+Or assign existing tasks in bulk:
+
+```
+mcp__project-brain__tasks  action=batch_update
+  updates=[{"id": "uuid-1", "milestone_id": "<milestone_id>"}, ...]
+```
+
 ### Batch Operations
 
 Create multiple tasks at once for larger initiatives:
@@ -127,7 +184,8 @@ Create multiple tasks at once for larger initiatives:
 ```
 mcp__project-brain__tasks  action=batch_create
   project_id=<id>
-  items=[{"title": "...", "status": "todo"}, ...]
+  milestone_id=<milestone_id>
+  items=[{"title": "...", "status": "to_do", "priority": "high"}, ...]
 ```
 
 Update multiple tasks in one call:
@@ -203,11 +261,21 @@ mcp__project-brain__collaboration  action=get_agent_activity  project_id=<id>
 
 ## Common Workflows
 
+### Planning a new initiative
+1. `context action=session` — load current state, avoid duplicating in-progress work
+2. `context action=search q="<area>"` — find relevant prior decisions and facts
+3. `projects action=get_workflow` — get valid status values for this project
+4. `tasks action=create_milestone` — create a milestone for the initiative
+5. `tasks action=batch_create` with `milestone_id` — create all tasks in one call
+6. `knowledge entity=decision action=create` — log architectural choices made during planning, linked to the relevant task via `task_id`
+7. `knowledge entity=fact action=create` with `task_id` — log any constraints or discoveries
+
 ### Before starting a new feature
 1. `context action=session` — load current state
 2. `context action=search q="<feature area>"` — find relevant knowledge
-3. `tasks action=create` — create task(s) for the work
-4. `knowledge entity=decision action=create` — log any design decisions made during planning
+3. `projects action=get_workflow` — confirm valid status values
+4. `tasks action=create` — create task(s) for the work
+5. `knowledge entity=decision action=create` — log any design decisions made during planning
 
 ### After completing significant work
 1. `tasks action=update status=done` — close completed tasks

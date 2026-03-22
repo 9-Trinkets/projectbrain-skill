@@ -57,8 +57,9 @@ Facts, decisions, and skills CRUD.
 | `title` | string | create, update | Short, specific title |
 | `body` | string | create, update | Main content (fact/skill) |
 | `rationale` | string | create, update | Decision rationale (decision only) |
+| `task_id` | UUID | create, update | Link entry to a specific task |
 | `category` | string | create, update, list | Free-form label |
-| `tags` | string[] | create, update, list | Tag array |
+| `tags` | string[] | create, update, list | Tag array (skill only) |
 | `q` | string | list | Text search |
 | `cursor` / `limit` | string/int | list | Pagination |
 
@@ -131,14 +132,14 @@ Task and milestone operations.
 
 ### Status values
 
-Status values are defined per-project workflow. Common defaults: `todo`, `in_progress`, `blocked`, `done`, `cancelled`. Always use `context action=session` to confirm available statuses before setting one.
+Status values are **project-specific** — do not guess. Always call `projects action=get_workflow project_id=<id>` first to get the exact stage names. Common defaults are `backlog`, `to_do`, `in_progress`, `review`, `done`, but a project may use different names. Sending an invalid status causes the API to reject the request.
 
 ### batch_create payload
 
 ```json
 items=[
-  {"title": "Design schema", "status": "todo", "priority": "high"},
-  {"title": "Write migration", "status": "todo", "priority": "medium"}
+  {"title": "Design schema", "status": "to_do", "priority": "high"},
+  {"title": "Write migration", "status": "to_do", "priority": "medium"}
 ]
 ```
 
